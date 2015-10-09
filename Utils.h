@@ -55,6 +55,7 @@ static const char* imageFiles[] = {
         "glue-28.png",
         "glue-29.png"
 };
+void DisplayImage(std::string,cv::Mat);
 void ParseCommandLineArgument(int,char**);
 void debug(char**);
 void debug(std::string);

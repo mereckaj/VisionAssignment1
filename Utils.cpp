@@ -3,6 +3,9 @@
 //
 
 #include "Utils.h"
+#include <opencv2/core/core.hpp>
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/highgui/highgui.hpp>
 
 #define FLAG_DEBUG "--debug"
 
@@ -25,4 +28,10 @@ void debug(std::string message){
     if(DEBUG_MODE){
         std::cout << message << std::endl;
     }
+}
+
+void DisplayImage(std::string title,cv::Mat image){
+    imshow(title,image);
+    cvWaitKey(0);
+    cv::destroyWindow(title);
 }
