@@ -4,9 +4,6 @@
 #include <opencv2/highgui.hpp>
 #include <iostream>
 
-//
-// Created by mereckaj on 09/10/15.
-//
 cv::Mat ConvertToSamples(cv::Mat image);
 cv::Mat Cluster(cv::Mat image,cv::Mat samples,int k,int iterations);
 cv::Mat * LoadImages(const char* imageFiles[], const char* IMAGE_LOCATION);
@@ -16,10 +13,12 @@ void DisplayImage(std::string title,cv::Mat image);
 
 #define CHANNEL_COUNT 3
 #define FLAG_DEBUG "--debug"
+#define NUMBER_OF_IMAGES 30
+
 
 static int DEBUG_MODE;
-const char * IMAGE_LOCATION = "/home/mereckaj/Dev/ClionProjects/VisionAssignment1/Images/";
-const char* imageFiles[] = {
+char * IMAGE_LOCATION = "/home/mereckaj/Dev/ClionProjects/VisionAssignment1/Images/";
+char* imageFiles[] = {
         "glue-0.png",
         "glue-1.png",
         "glue-2.png",
@@ -51,12 +50,9 @@ const char* imageFiles[] = {
         "glue-28.png",
         "glue-29.png"
 };
+
 cv::Mat ConvertToSamples(cv::Mat image){
-    debug("\tConvertToSamples");
     cv::Mat samples(image.rows*image.cols,3,CV_32F);
-    debug("Created samples matrix");
-    float* sample = samples.ptr<float>(0);
-    debug("Created pointer");
     for(int row = 0; row < image.rows;row++){
         for(int col=0; col < image.cols; col++){
             for(int channel =0 ; channel < CHANNEL_COUNT;channel++){
@@ -64,18 +60,14 @@ cv::Mat ConvertToSamples(cv::Mat image){
             }
         }
     }
-    debug("Processed all the samples");
     return samples;
 }
+
 cv::Mat Cluster(cv::Mat image,cv::Mat samples,int k,int iterations){
-    debug("\tCluster");
     cv::Mat resultImage;
     cv::Mat labels, centres;
-    debug("Created temp matrices");
     cv::kmeans(samples,k,labels,cv::TermCriteria(CV_TERMCRIT_ITER|CV_TERMCRIT_EPS,0.0001,10000),iterations,cv::KMEANS_PP_CENTERS,centres);
-    debug("\tkmeans success");
     resultImage = cv::Mat(image.size(),image.type());
-    debug("Created result matrix");
     for(int row = 0; row < image.rows;row++){
         for(int col=0; col < image.cols; col++){
             for(int channel =0 ; channel < CHANNEL_COUNT;channel++){
@@ -83,26 +75,19 @@ cv::Mat Cluster(cv::Mat image,cv::Mat samples,int k,int iterations){
             }
         }
     }
-    debug("Filled result matrix");
     return resultImage;
 }
-cv::Mat * LoadImages(const char* imageFiles[], const char* IMAGE_LOCATION){
 
-    int numberOfImages = (sizeof(imageFiles)/sizeof(imageFiles[0]));
-    debug("NumberOfImages: " + std::to_string(numberOfImages));
-    cv::Mat *images = new cv::Mat[numberOfImages];
-    for(int i = 0; i < numberOfImages;i++){
+cv::Mat * LoadImages(char* imageFiles[], char* IMAGE_LOCATION){
+    cv::Mat *images = new cv::Mat[NUMBER_OF_IMAGES];
+    for(int i = 0; i < NUMBER_OF_IMAGES;i++){
         std::string filename(IMAGE_LOCATION);
         filename.append(imageFiles[i]);
         images[i] = cv::imread(filename, cv::IMREAD_ANYCOLOR);
         if (images[i].empty())
         {
-            debug("Could not open: " + filename);
             exit(1);
-        }else{
-            DisplayImage(std::to_string(i),images[i]);
         }
-
     }
     return images;
 }
@@ -116,6 +101,7 @@ void ParseCommandLineArgument(int argument_count, char** argument_array){
         }
     }
 }
+
 void debug(std::string message){
     if(DEBUG_MODE){
         std::cout << message << std::endl;
@@ -127,25 +113,16 @@ void DisplayImage(std::string title,cv::Mat image){
     cvWaitKey(0);
     cv::destroyWindow(title);
 }
+
 int main(int argc,char** argv){
     cv::Mat *images;
-    int menuChoice;
-    int numOfPics = sizeof(imageFiles)/sizeof(imageFiles[0]);
-
     ParseCommandLineArgument(argc, argv);
     images = LoadImages(imageFiles,IMAGE_LOCATION);
-    debug("Loaded all images");
-    cv::Mat* results = new cv::Mat[numOfPics];
-    debug("Created result matrix");
-
-    exit(0);
-    for(int i = 0 ; i < numOfPics;i++){
+    cv::Mat* results = new cv::Mat[NUMBER_OF_IMAGES];
+    for(int i = 0 ; i < NUMBER_OF_IMAGES;i++){
         cv::Mat samples;
-        debug("Processing image:"+std::to_string(i));
         samples = ConvertToSamples(images[i]);
-        debug("Created samples:" + std::to_string(i));
-        results[i] = Cluster(images[i],samples,2,1);
-        debug("Processed image:" + std::to_string(i));
-        DisplayImage(std::to_string(i),results[i]);
+        results[i] = Cluster(images[i],samples,2*i+2,5);
+        DisplayImage(std::to_string(2*i+2),results[i]);
     }
 }
